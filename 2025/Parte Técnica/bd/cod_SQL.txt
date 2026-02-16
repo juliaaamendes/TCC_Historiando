@@ -1,0 +1,48 @@
+CREATE DATABASE historiando;
+
+USE historiando;
+
+CREATE TABLE fase (
+id_fase INT AUTO_INCREMENT PRIMARY KEY,
+titulo_fase  VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE nivel (
+id_nivel INT AUTO_INCREMENT PRIMARY KEY,
+titulo_nivel  VARCHAR(50) NOT NULL,
+id_fase INT NOT NULL,
+FOREIGN KEY (id_fase) REFERENCES fase(id_fase)
+);
+
+
+CREATE TABLE conquista (
+id_conquista INT AUTO_INCREMENT PRIMARY KEY,
+nome_conquista VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE progresso (
+id_progresso INT AUTO_INCREMENT PRIMARY KEY,
+conquistaUsuario INT NOT NULL,
+id_fase INT NOT NULL,
+id_nivel INT NOT NULL,
+FOREIGN KEY (id_fase) REFERENCES fase(id_fase),
+FOREIGN KEY (id_nivel) REFERENCES nivel(id_nivel),
+FOREIGN KEY (conquistaUsuario) REFERENCES conquista(id_conquista)
+);
+
+CREATE TABLE jogador (
+id_jogador INT AUTO_INCREMENT PRIMARY KEY,
+nome_jogador VARCHAR(50) NOT NULL,
+email_jogador VARCHAR(50) NOT NULL,
+senha_jogador VARCHAR(8) NOT NULL,
+progresso_id INT NOT NULL,
+FOREIGN KEY (progresso_id) REFERENCES progresso(id_progresso)
+);
+
+CREATE TABLE historico (
+id_historico INT AUTO_INCREMENT,
+id_jogador INT NOT NULL ,
+tempo DATETIME,
+PRIMARY KEY (id_historico, id_jogador),
+FOREIGN KEY (id_jogador) REFERENCES jogador(id_jogador)
+);
