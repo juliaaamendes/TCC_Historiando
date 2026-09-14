@@ -1,5 +1,5 @@
 // By Fillipe Welausen - 04/03/2020 - CircuitoMaker.com
-// Modificado para mostrar movimentação dos eixos no Monitor Serial
+// Modificado para mostrar eixos e botões pressionados no Monitor Serial
 
 #include "Joystick.h"
 
@@ -7,16 +7,21 @@ Joystick_ Joystick(
   JOYSTICK_DEFAULT_REPORT_ID,
   JOYSTICK_TYPE_GAMEPAD,
 
-  8, 2,                  // Button Count, Hat Switch Count
+  4, 2,                  // 4 botões: A, B, X, Y; 2 hat switches
   true, true, true,       // X, Y e Z
   true, true, false,      // Rx, Ry e sem Rz
   false, false,           // Sem rudder ou throttle
   false, false, false     // Sem accelerator, brake ou steering
 );
 
-int botoes1Pins[] = {0, 1, 2, 3};         // A, B, X, Y
-int ledsPins[] = {A0, A1, A2, A3};        // LEDs dos botões A, B, X, Y
-int botoes2Pins[] = {4, 5, 6, 7};         // L, R, START, SELECT
+// Botões de fliperama: COM -> GND, NO -> pino abaixo, NC sem conexão.
+// INPUT_PULLUP: solto = HIGH; pressionado (NO ligado ao COM) = LOW.
+// Índices HID 0, 1, 2, 3 representam A, B, X, Y neste projeto.
+
+// O jogo/emulador pode exigir configurar esse mapeamento.
+const int botoesPins[] = {6, 7, 8, 9};  // A, B, X, Y
+const char nomesBotoes[] = {'A', 'B', 'X', 'Y'};
+bool botoesAnteriores[] = {false, false, false, false};
 int direcionalPins[] = {2, 3, 5, 4};  // DIREITA, ESQUERDA, BAIXO, CIMA
 
 
@@ -32,14 +37,12 @@ void setup() {
   Serial.begin(9600);
 
   Serial.println("Joystick iniciado!");
-  Serial.println("Monitorando eixos X e Y...");
+  Serial.println("Monitorando eixos X e Y e botoes A, B, X, Y...");
   Serial.println();
 
   for (int x = 0; x <= 3; x++) {
 
-    pinMode(botoes1Pins[x], INPUT_PULLUP);
-    pinMode(botoes2Pins[x], INPUT_PULLUP);
-    pinMode(ledsPins[x], OUTPUT);
+    pinMode(botoesPins[x], INPUT_PULLUP);
     pinMode(direcionalPins[x], INPUT_PULLUP);
 
   }
@@ -61,34 +64,17 @@ void loop() {
 
   for (int x = 0; x <= 3; x++) {
 
-    if (digitalRead(botoes1Pins[x]) == LOW) {
+    bool pressionado = digitalRead(botoesPins[x]) == LOW;
+    Joystick.setButton(x, pressionado);
 
-      Joystick.setButton(x, 1);
-
-      // Desliga LED correspondente ao botão pressionado
-      digitalWrite(ledsPins[x], LOW);
-
-    }
-    else {
-
-      Joystick.setButton(x, 0);
-
-      // Liga LED correspondente ao botão solto
-      digitalWrite(ledsPins[x], HIGH);
-
+    // Mostra somente ao apertar, sem repetir enquanto estiver segurado.
+    if (pressionado && !botoesAnteriores[x]) {
+      Serial.print("Botao ");
+      Serial.print(nomesBotoes[x]);
+      Serial.println(" pressionado!");
     }
 
-
-    if (digitalRead(botoes2Pins[x]) == LOW) {
-
-      Joystick.setButton(x + 4, 1);
-
-    }
-    else {
-
-      Joystick.setButton(x + 4, 0);
-
-    }
+    botoesAnteriores[x] = pressionado;
 
   }
 
